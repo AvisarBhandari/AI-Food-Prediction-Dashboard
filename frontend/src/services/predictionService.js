@@ -44,9 +44,23 @@ const getAnalytics = async (token) => {
 
   return response.data;
 };
+const deletePrediction = async (id, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 
+  const response = await axios.delete(
+    `http://localhost:5000/api/predictions/${id}`,
+    config,
+  );
+
+  return response.data;
+};
 export default {
   savePrediction,
   getPredictions,
   getAnalytics,
+  deletePrediction,
 };

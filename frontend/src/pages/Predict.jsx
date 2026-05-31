@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import NavBar from "../components/NavBar";
 import predictionService from "../services/predictionService";
 import toast from "react-hot-toast";
-
 function Predict() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -14,58 +13,41 @@ function Predict() {
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    if (!image) {
-      toast.error("Please select an image");
-
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", image);
+    if (!image) return;
 
     try {
       setLoading(true);
 
-      const response = await axios.post(
+      // 1. Upload image
+      const formData = new FormData();
+      formData.append("file", image);
+
+      const uploadRes = await axios.post(
+        "http://localhost:5000/api/upload",
+        formData,
+      );
+
+      const imageUrl = uploadRes.data.imageUrl;
+
+      // 2. Send to FastAPI
+      const predictRes = await axios.post(
         "http://localhost:8000/predict",
         formData,
       );
-      setResult(response.data);
 
+      setResult(predictRes.data);
+
+      // 3. Save to MongoDB
       const user = JSON.parse(localStorage.getItem("user"));
 
-      try {
-        const payload = {
-          prediction: response.data.prediction,
-          confidence: response.data.confidence,
-        };
-
-        // console.log("Payload:", payload);
-        // console.log("Token:", user.token);
-
-        const saved = await predictionService.savePrediction(
-          payload,
-          user.token,
-        );
-        toast.success("Prediction completed");
-        // console.log("SAVE SUCCESS");
-        // console.log(saved);
-      } catch (err) {
-        toast.error("Prediction failed");
-        // console.log("SAVE FAILED");
-
-        console.log("Full Error:", err);
-
-        if (err.response) {
-          console.log("Status:", err.response.status);
-          console.log("Response Data:", err.response.data);
-        }
-
-        if (err.request) {
-          console.log("Request sent but no response");
-          console.log(err.request);
-        }
-      }
+      await predictionService.savePrediction(
+        {
+          prediction: predictRes.data.prediction,
+          confidence: predictRes.data.confidence,
+          imageUrl: imageUrl,
+        },
+        user.token,
+      );
     } catch (error) {
       console.log(error);
     } finally {

@@ -14,25 +14,29 @@ function Profile() {
 
     window.location.href = "/login";
   };
-useEffect(() => {
-  const userInfo = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem("user"));
 
-  if (!userInfo) return;
+    if (!userInfo) return;
 
-  userService.getProfile(userInfo.token).then(setUser).catch(console.error);
+    userService.getProfile(userInfo.token).then(setUser).catch(console.error);
 
-  predictionService
-    .getAnalytics(userInfo.token)
-    .then(setAnalytics)
-    .catch(console.error);
+    predictionService
+      .getAnalytics(userInfo.token)
+      .then(setAnalytics)
+      .catch(console.error);
 
-  predictionService
-    .getPredictions(userInfo.token)
-    .then(setPredictions)
-    .catch(console.error);
-}, []);
+    predictionService
+      .getPredictions(userInfo.token)
+      .then(setPredictions)
+      .catch(console.error);
+  }, []);
   if (!user) {
-    return <h2>User Not Found</h2>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
   }
 
   return (
@@ -63,54 +67,63 @@ useEffect(() => {
           Logout
         </button>
       </div>
-      {analytics && (
-        <div className="stats shadow w-full mt-6">
-          <div className="stat">
-            <div className="stat-title">Total Predictions</div>
-
-            <div className="stat-value">{analytics.totalPredictions}</div>
-          </div>
-
-          <div className="stat">
-            <div className="stat-title">Favorite Food</div>
-
-            <div className="stat-value text-primary">
-              {analytics.favoriteFood}
-            </div>
-          </div>
-
-          <div className="stat">
-            <div className="stat-title">Avg Confidence</div>
-
-            <div className="stat-value">
-              {analytics.averageConfidence.toFixed(1)}%
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="card bg-base-200 mt-6 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title">Prediction History</h2>
-
-          {predictions.length === 0 ? (
-            <p>No predictions yet</p>
-          ) : (
-            predictions.map((item) => (
-              <div
-                key={item._id}
-                className="
-       flex
-       justify-between
-       border-b
-       py-2"
-              >
-                <span>{item.prediction}</span>
-
-                <span>{item.confidence}%</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        {predictions.map((item) => (
+          <div
+            key={item._id}
+            className="card bg-base-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+          >
+            {/* IMAGE SECTION */}
+            {item.imageUrl ? (
+              <figure>
+                <img
+                  src={item.imageUrl}
+                  alt="food"
+                  className="h-40 w-full object-cover"
+                />
+              </figure>
+            ) : (
+              <div className="h-40 flex items-center justify-center bg-base-300">
+                <span className="text-sm opacity-60">No image</span>
               </div>
-            ))
-          )}
-        </div>
+            )}
+
+            {/* CONTENT */}
+            <div className="card-body p-4">
+              <h2 className="text-xl font-bold capitalize">
+                {item.prediction?.replace("_", " ")}
+              </h2>
+
+              <p className="text-primary font-semibold">{item.confidence}%</p>
+
+              <p className="text-xs opacity-60">
+                {new Date(item.createdAt).toLocaleString()}
+              </p>
+
+              <div className="card-actions justify-end mt-2">
+                <button
+                  onClick={async () => {
+                    const user = JSON.parse(localStorage.getItem("user"));
+
+                    await predictionService.deletePrediction(
+                      item._id,
+                      user.token,
+                    );
+
+                    setPredictions(
+                      predictions.filter((p) => p._id !== item._id),
+                    );
+
+                    toast.success("Deleted");
+                  }}
+                  className="btn btn-sm btn-error"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ import { connectDB } from "./config/db.js";
 import authRoute from "./routes/authRoutes.js";
 import userRoute from "./routes/UserRoutes.js";
 import predictionRoute from "./routes/predictionRoutes.js";
+import path from "path";
+import uploadRoute from "./routes/uploadRoutes.js";
 
 dotenv.config();
 
@@ -19,6 +21,9 @@ app.use(
   }),
 );
 
+const uploadsPath = path.resolve("uploads");
+
+app.use("/uploads", express.static(uploadsPath));
 app.use(express.json());
 // 2. Request Logger (Moved up to catch ALL requests)
 app.use((req, res, next) => {
@@ -33,6 +38,7 @@ app.get("/", (req, res) => {
 app.use("/api/predictions", predictionRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
+app.use("/api/upload", uploadRoute);
 
 // 4. Database & Server Start
 connectDB().then(() => {
