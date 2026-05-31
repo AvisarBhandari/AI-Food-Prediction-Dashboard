@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/predictions";
+const API_URL = "http://localhost:5000/api/predictions/";
 
 const savePrediction = async (data, token) => {
   console.log("=== predictionService ===");
@@ -33,7 +33,20 @@ const getPredictions = async (token) => {
   return response.data;
 };
 
+const getAnalytics = async (token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await axios.get(API_URL + "analytics", config);
+
+  return response.data;
+};
+
 export default {
   savePrediction,
   getPredictions,
+  getAnalytics,
 };

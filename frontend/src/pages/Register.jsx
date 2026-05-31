@@ -2,6 +2,8 @@ import { useState } from "react";
 import authService from "../services/authService.js";
 import Login from "./Login.jsx";
 import { NavLink } from "react-router-dom";
+import toast from "react-hot-toast";
+
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,7 +19,7 @@ function Register() {
         password,
       });
 
-      console.log(data);
+      toast.success("Account created");
     } catch (error) {
       console.log(error.response?.data);
       console.log(error);

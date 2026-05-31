@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
 import { NavLink } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function Login() {
   const navigate = useNavigate();
@@ -21,13 +22,13 @@ const submitHandler = async (e) => {
       password,
     });
 
-    console.log("LOGIN SUCCESS:", data);
+    toast.success("Welcome back!");
 
     localStorage.setItem("user", JSON.stringify(data));
 
     navigate("/profile");
   } catch (error) {
-    console.log("LOGIN ERROR:", error);
+    toast.error("Invalid credentials");
     alert(error.response?.data?.message || "Login failed");
   }
 };

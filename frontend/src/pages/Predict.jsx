@@ -3,6 +3,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import NavBar from "../components/NavBar";
 import predictionService from "../services/predictionService";
+import toast from "react-hot-toast";
 
 function Predict() {
   const [image, setImage] = useState(null);
@@ -13,7 +14,11 @@ function Predict() {
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    if (!image) return;
+    if (!image) {
+      toast.error("Please select an image");
+
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", image);
@@ -27,10 +32,7 @@ function Predict() {
       );
       setResult(response.data);
 
-
       const user = JSON.parse(localStorage.getItem("user"));
-
-
 
       try {
         const payload = {
@@ -45,10 +47,11 @@ function Predict() {
           payload,
           user.token,
         );
-
+        toast.success("Prediction completed");
         // console.log("SAVE SUCCESS");
         // console.log(saved);
       } catch (err) {
+        toast.error("Prediction failed");
         // console.log("SAVE FAILED");
 
         console.log("Full Error:", err);

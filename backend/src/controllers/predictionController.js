@@ -35,3 +35,65 @@ export const getPrediction = async (req, res) => {
     });
   }
 };
+
+export const getAnalytics = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const totalPredictions = await Prediction.countDocuments({
+      user: userId,
+    });
+
+    const avgConfidence = await Prediction.aggregate([
+      {
+        $match: {
+          user: userId,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          average: {
+            $avg: "$confidence",
+          },
+        },
+      },
+    ]);
+
+    const favoriteFood = await Prediction.aggregate([
+      {
+        $match: {
+          user: userId,
+        },
+      },
+      {
+        $group: {
+          _id: "$prediction",
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $sort: {
+          count: -1,
+        },
+      },
+      {
+        $limit: 1,
+      },
+    ]);
+
+    res.json({
+      totalPredictions,
+
+      averageConfidence: avgConfidence[0]?.average || 0,
+
+      favoriteFood: favoriteFood[0]?._id || "N/A",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

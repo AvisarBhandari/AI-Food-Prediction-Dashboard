@@ -3,28 +3,34 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import predictionService from "../services/predictionService";
 import userService from "../services/userService";
+import toast from "react-hot-toast";
 
 function Profile() {
   const [user, setUser] = useState(null);
   const [predictions, setPredictions] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const logoutHandler = () => {
     localStorage.removeItem("user");
 
     window.location.href = "/login";
   };
-  useEffect(() => {
-    const userInfo = JSON.parse(localStorage.getItem("user"));
+useEffect(() => {
+  const userInfo = JSON.parse(localStorage.getItem("user"));
 
-    if (!userInfo) return;
+  if (!userInfo) return;
 
-    userService.getProfile(userInfo.token).then(setUser).catch(console.error);
+  userService.getProfile(userInfo.token).then(setUser).catch(console.error);
 
-    predictionService
-      .getPredictions(userInfo.token)
-      .then(setPredictions)
-      .catch(console.error);
-  }, []);
+  predictionService
+    .getAnalytics(userInfo.token)
+    .then(setAnalytics)
+    .catch(console.error);
 
+  predictionService
+    .getPredictions(userInfo.token)
+    .then(setPredictions)
+    .catch(console.error);
+}, []);
   if (!user) {
     return <h2>User Not Found</h2>;
   }
@@ -57,7 +63,31 @@ function Profile() {
           Logout
         </button>
       </div>
+      {analytics && (
+        <div className="stats shadow w-full mt-6">
+          <div className="stat">
+            <div className="stat-title">Total Predictions</div>
 
+            <div className="stat-value">{analytics.totalPredictions}</div>
+          </div>
+
+          <div className="stat">
+            <div className="stat-title">Favorite Food</div>
+
+            <div className="stat-value text-primary">
+              {analytics.favoriteFood}
+            </div>
+          </div>
+
+          <div className="stat">
+            <div className="stat-title">Avg Confidence</div>
+
+            <div className="stat-value">
+              {analytics.averageConfidence.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+      )}
       <div className="card bg-base-200 mt-6 shadow-xl">
         <div className="card-body">
           <h2 className="card-title">Prediction History</h2>
