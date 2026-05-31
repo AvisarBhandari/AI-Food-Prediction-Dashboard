@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useEffect } from "react";
 import NavBar from "../components/NavBar";
+import predictionService from "../services/predictionService";
 
 function Predict() {
   const [image, setImage] = useState(null);
@@ -24,8 +25,44 @@ function Predict() {
         "http://localhost:8000/predict",
         formData,
       );
-
       setResult(response.data);
+
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
+
+
+      try {
+        const payload = {
+          prediction: response.data.prediction,
+          confidence: response.data.confidence,
+        };
+
+        // console.log("Payload:", payload);
+        // console.log("Token:", user.token);
+
+        const saved = await predictionService.savePrediction(
+          payload,
+          user.token,
+        );
+
+        // console.log("SAVE SUCCESS");
+        // console.log(saved);
+      } catch (err) {
+        // console.log("SAVE FAILED");
+
+        console.log("Full Error:", err);
+
+        if (err.response) {
+          console.log("Status:", err.response.status);
+          console.log("Response Data:", err.response.data);
+        }
+
+        if (err.request) {
+          console.log("Request sent but no response");
+          console.log(err.request);
+        }
+      }
     } catch (error) {
       console.log(error);
     } finally {

@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
+import predictionService from "../services/predictionService";
 import userService from "../services/userService";
 
 function Profile() {
   const [user, setUser] = useState(null);
+  const [predictions, setPredictions] = useState([]);
   const logoutHandler = () => {
     localStorage.removeItem("user");
 
@@ -14,13 +15,18 @@ function Profile() {
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("user"));
 
-    if (userInfo) {
-      userService.getProfile(userInfo.token).then(setUser).catch(console.error);
-    }
+    if (!userInfo) return;
+
+    userService.getProfile(userInfo.token).then(setUser).catch(console.error);
+
+    predictionService
+      .getPredictions(userInfo.token)
+      .then(setPredictions)
+      .catch(console.error);
   }, []);
 
   if (!user) {
-    return <h2>Loading...</h2>;
+    return <h2>User Not Found</h2>;
   }
 
   return (
@@ -52,13 +58,28 @@ function Profile() {
         </button>
       </div>
 
-      <div className="stats shadow w-full mt-6">
-        <div className="stat">
-          <div className="stat-title">Predictions Made</div>
+      <div className="card bg-base-200 mt-6 shadow-xl">
+        <div className="card-body">
+          <h2 className="card-title">Prediction History</h2>
 
-          <div className="stat-value">0</div>
+          {predictions.length === 0 ? (
+            <p>No predictions yet</p>
+          ) : (
+            predictions.map((item) => (
+              <div
+                key={item._id}
+                className="
+       flex
+       justify-between
+       border-b
+       py-2"
+              >
+                <span>{item.prediction}</span>
 
-          <div className="stat-desc">History feature coming next</div>
+                <span>{item.confidence}%</span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
