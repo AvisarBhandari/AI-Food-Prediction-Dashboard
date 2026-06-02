@@ -10,6 +10,49 @@ function Predict() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // const submitHandler = async (e) => {
+  //   e.preventDefault();
+  //   if (!image) return;
+  //   try {
+  //     setLoading(true);
+  //     // 1. Upload image
+  //     const formData = new FormData();
+  //     formData.append("file", image);
+
+  //     const uploadRes = await axios.post(
+  //       "http://localhost:5000/api/upload",
+  //       formData,
+  //     );
+
+  //     const imageUrl = uploadRes.data.imageUrl;
+
+  //     // 2. Send to FastAPI
+  //     const predictRes = await axios.post(
+  //       "http://localhost:8000/predict",
+  //       formData,
+  //     );
+
+  //     setResult(predictRes.data);
+
+  //     // 3. Save to MongoDB
+  //     const user = JSON.parse(localStorage.getItem("user"));
+
+  //     await predictionService.savePrediction(
+  //       {
+  //         prediction: predictRes.data.prediction,
+  //         confidence: predictRes.data.confidence,
+  //         imageUrl: imageUrl,
+  //       },
+  //       user.token,
+  //     );
+  //   } catch (error) {
+  //     console.log(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
   const submitHandler = async (e) => {
     e.preventDefault();
 
@@ -18,7 +61,7 @@ function Predict() {
     try {
       setLoading(true);
 
-      // 1. Upload image
+      // 1. Upload image to Cloudinary via Node
       const formData = new FormData();
       formData.append("file", image);
 
@@ -29,10 +72,13 @@ function Predict() {
 
       const imageUrl = uploadRes.data.imageUrl;
 
-      // 2. Send to FastAPI
+      // 2. Send same image to FastAPI
+      const predictForm = new FormData();
+      predictForm.append("file", image);
+
       const predictRes = await axios.post(
         "http://localhost:8000/predict",
-        formData,
+        predictForm,
       );
 
       setResult(predictRes.data);
@@ -48,13 +94,16 @@ function Predict() {
         },
         user.token,
       );
+      if (!uploadRes.data?.imageUrl) {
+        toast.error("Image upload failed");
+        return;
+      }
     } catch (error) {
       console.log(error);
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div>
       <div className="container mx-auto max-w-4xl p-6">

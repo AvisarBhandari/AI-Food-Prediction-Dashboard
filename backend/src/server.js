@@ -23,8 +23,8 @@ app.use(
 
 const uploadsPath = path.resolve("uploads");
 
-app.use("/uploads", express.static(uploadsPath));
-app.use(express.json());
+// app.use("/uploads", express.static(uploadsPath));
+// app.use(express.json());
 // 2. Request Logger (Moved up to catch ALL requests)
 app.use((req, res, next) => {
   console.log("Request method:", req.method, "req path:", req.path);

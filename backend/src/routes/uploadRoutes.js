@@ -1,6 +1,6 @@
 import express from "express";
 import { Router } from "express";
-import upload from "../middleware/upload.js";
+import upload from "../middleware/cloudinaryUpload.js";
 
 const router = Router();
 
